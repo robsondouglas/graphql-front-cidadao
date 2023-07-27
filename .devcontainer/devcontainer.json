@@ -1,0 +1,5 @@
+{
+    "name": "FRONT-CIDADAO",
+    "image": "node:16",
+     "postCreateCommand": "npm i"
+}
