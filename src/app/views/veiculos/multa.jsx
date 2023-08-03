@@ -6,9 +6,9 @@ import { useState } from "react";
 
 const { Dialog, DialogTitle, DialogContent, DialogContentText, TextField, Button, IconButton, DialogActions, CircularProgress, Badge, List, ListItem, ListItemAvatar, ListItemText, Divider, Grid, Card, CardContent, Typography, CardActions, Chip, Box, AppBar, Toolbar } = require("@mui/material");
 
-const Multa = ({ OnAdded }) => {
+const Multa = ({ OnAdded, multasPendentes, multasQuitadas }) => {
     const { success, error } = useToast();
-
+    const multas = [...multasPendentes, ...multasQuitadas]
     const initialState = { open: false, loading: false };
     const veiculoState = { Placa: '', Modelo: '', Fabricante: '', Ano: 2023, }
     const [state, setState] = useState(initialState);
@@ -32,29 +32,16 @@ const Multa = ({ OnAdded }) => {
     const handleOpen = () => setState({ ...state, open: true })
 
 
-    const multas = [
-        { Descricao: "Avanço de sinal vermelho", Valor: 192.50, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-        { Descricao: "Trafegar na contramão", Valor: 890.75, DateAdd: new Date() },
-    ]
-
     return (
         <>
-            <IconButton edge="end" aria-label="comments" onClick={handleOpen}>
-                <Badge badgeContent={multas.length} color="error">
-                    <RequestQuote color="action" />
-                </Badge>
-            </IconButton>
+            {multas.length == 0 ?
+                (<></>) :
+                (<IconButton edge="end" aria-label="comments" onClick={handleOpen}>
+                    <Badge badgeContent={multasPendentes.length} color="error">
+                        <RequestQuote color="action" />
+                    </Badge>
+                </IconButton>)
+            }
             <Dialog open={state.open} aria-labelledby="form-dialog-title" fullWidth={true} maxWidth="md" scroll="paper" onClose={handleClose}>
                 <AppBar sx={{ position: 'relative' }}>
                     <Toolbar>
@@ -73,10 +60,10 @@ const Multa = ({ OnAdded }) => {
                                         Multa
                                     </Typography>
                                     <Typography variant="h5" component="div">
-                                        R$ {m.Valor.toLocaleString()}
+                                        R$ {Number.parseFloat(m.Infracao.Valor).toLocaleString()}
                                     </Typography>
                                     <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                        {m.DateAdd.toLocaleDateString()}
+                                        {new Date(Number.parseFloat(m.DateAdd)).toLocaleDateString()}
                                     </Typography>
                                     <Typography variant="body2">
                                         {m.Descricao}

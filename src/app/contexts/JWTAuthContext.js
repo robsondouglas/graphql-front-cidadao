@@ -1,6 +1,6 @@
 import { createContext, useEffect, useReducer } from 'react';
 import { MatxLoading } from 'app/components';
-import {signIn, signUp, confirmSignup, refreshSignin, ressendCode, forgot} from './../../auth';
+import {signIn, signUp, confirmSignup, refreshSignin, ressendCode, forgot, setPassword} from './../../auth';
 
 const initialState = {
   usr: null,
@@ -18,6 +18,11 @@ const reducer = (state, action) => {
     case 'LOGIN': {
       const { user, name } = action.payload;
       return { ...state, isAuthenticated: true, usr:{user, name} };
+    }
+
+    case 'CHANGE': {
+      const { user, name } = action.payload;
+      return { ...state, mustChangePassword:true, isAuthenticated: false, usr:{user, name} };
     }
 
     case 'LOGOUT': {
@@ -44,7 +49,8 @@ const AuthContext = createContext({
   confirmCode: ()=>{},
   reload: () => {},
   ressendCode: ()=>{},
-  forgot: ()=>{}
+  forgot: ()=>{},
+  change: ()=>{}
 });
 
 export const AuthProvider = ({ children }) => {
@@ -52,16 +58,34 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, remember) => {
     const res = await signIn(email, password, remember);
-    dispatch({ type: 'LOGIN', payload: {usr: res.user, name: res.name}});
+
+    if( res.accessToken )
+    {dispatch({ type: 'LOGIN', payload: {user: res.user, name: res.name}});}
+    else
+    { dispatch({ type: 'CHANGE', payload: {user: res.email, name: res.name}}); }
   };
 
-  const register = async (email, username, password) => {
-    await signUp(username, email, password);    
+  const register = async (itm) => {
+    await signUp(itm);    
     dispatch({ type: 'REGISTER', payload: {  } });
+  };
+
+  const change = async (itm) => {
+    try{
+      const res = await setPassword(itm);
+      dispatch({ type: 'LOGIN', payload: {user: res.user, name: res.name}});
+    }
+    catch(ex)
+    { 
+      console.log(ex)
+      throw new Error(ex) 
+    }
+    
   };
 
   const confirmCode = (email, code) =>  confirmSignup(email, code); 
   const logout      = ()            => dispatch({ type: 'LOGOUT' });
+  
   
 
   useEffect(() => {
@@ -79,7 +103,7 @@ export const AuthProvider = ({ children }) => {
   if (!state.isInitialised) return <MatxLoading />;
 
   return (
-    <AuthContext.Provider value={{ ...state, method: 'JWT', login, logout, register, confirmCode, ressendCode, forgot }}>
+    <AuthContext.Provider value={{ ...state, method: 'JWT', login, logout, register, change, confirmCode, ressendCode, forgot }}>
       {children}
     </AuthContext.Provider>
   );

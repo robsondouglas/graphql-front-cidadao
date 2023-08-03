@@ -1,19 +1,21 @@
 import {CognitoUserPool, CognitoUser, AuthenticationDetails, CognitoRefreshToken} from 'amazon-cognito-identity-js';
+import { Mutation } from 'app/utils/request';
 
 const getStorage = () =>  localStorage.getItem('storage-credentials') === 'local' ? localStorage : sessionStorage;
 
 
 const UserPool = new CognitoUserPool({
-    UserPoolId: 'sa-east-1_28VaLNwAP',
-    ClientId:   '7joob4d238qo57i2gdmnkpava2',
+    UserPoolId: 'sa-east-1_lK1q4kfO6',
+    ClientId:   'bbvm4gnh4gllju7f4bdepdioh',
     Storage: getStorage()
 });
 
 let _accessToken = '';
 
-export const signUp = (name, email, pwd) => new Promise((resolve,reject)=>{
-    UserPool.signUp(email, pwd, [{Name:'name', Value: name}], null, (error, data)=> error ?  reject(error) : resolve(data));
-});
+export const signUp = async({ CNH, Email, Nascimento, Nome, Sexo, Senha }) => await Mutation(
+    `mutation AddCidadao($itm: CidadaoInput) { addCidadao(itm: $itm) }`, 
+    { itm : { CNH, Email, Nascimento, Nome, Sexo, Senha } }
+);
 
 
 export const signIn = (usr, pwd, persist) => new Promise((resolve, reject) => {
@@ -29,9 +31,27 @@ export const signIn = (usr, pwd, persist) => new Promise((resolve, reject) => {
             ;
         },
         onFailure: reject,
-        newPasswordRequired: ()=>console.log('required')
+        newPasswordRequired: resolve
     });
 })
+
+export const setPassword = ({user, oldPassword, newPassword}) => new Promise((resolve, onFailure)=>{
+    
+    const details = new AuthenticationDetails({Username: user, Password: oldPassword});    
+    const _user   = new CognitoUser({ Username: user, Pool: UserPool, Storage: getStorage() });
+    
+    const onSuccess = ({idToken, refreshToken, accessToken}) => {
+        resolve({name:idToken.payload.name, user:idToken.payload.email, refreshToken:refreshToken.token, accessToken:accessToken.jwtToken});
+        _accessToken = accessToken.jwtToken;
+    };
+
+    _user.authenticateUser(details, {
+        onSuccess,
+        onFailure,
+        newPasswordRequired: () =>  _user.completeNewPasswordChallenge(newPassword, null, {onSuccess, onFailure})
+    });
+});
+
 
 let _timerAuth = null;
 const autoResign = (expires) =>{
@@ -84,5 +104,5 @@ export const ressendCode = (usr)=> new Promise((resolve, reject) => {
 
 export const forgot = (usr) => new Promise((resolve, reject) => {
     const _user   = new CognitoUser({ Username: usr, Pool: UserPool, Storage: getStorage() });
-    _user.forgotPassword((err, data)=> err ? reject(err) : resolve(data));
+    _user.forgotPassword({onSuccess: (data) => resolve(data), onFailure: (err)=> reject(err)});
 });

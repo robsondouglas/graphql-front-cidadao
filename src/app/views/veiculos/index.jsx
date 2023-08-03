@@ -4,7 +4,8 @@ import Veiculo from './veiculo';
 import Multa from './multa';
 import { useEffect } from 'react';
 import { useState } from 'react';
-import { ListarFabricantes } from './service';
+import { ListarFabricantes, ListarVeiculos } from './service';
+import useToast from 'app/hooks/useToast';
 
 
 const ContentBox = styled('div')(({ theme }) => ({
@@ -35,24 +36,31 @@ const H4 = styled('h4')(({ theme }) => ({
 
 const GridVeiculo = () => {
   const [fabricantes, setFabricantes] = useState([])
+  const [veiculos, setVeiculos] = useState([])
+  const { success, error } = useToast();
+
+  const fillVeiculos = async () => {
+    try { setVeiculos(await ListarVeiculos()) }
+    catch (ex) { error(ex) }
+  }
+
+  const fillFabricantes = async () => {
+    try { setFabricantes(await ListarFabricantes('')) }
+    catch (ex) { error(ex) }
+  }
 
   useEffect(() => {
-    (async () => {
-      setFabricantes(await ListarFabricantes(''))
-    })();
-
+    Promise.all([
+      fillVeiculos(),
+      fillFabricantes()
+    ])
   }, [])
 
-  const veiculos = [
-    { Placa: 'LLB1020', Fabricante: { Id: 'abc123', Nome: 'Volkswagen' }, Modelo: { Nome: 'Polo' }, Cor: 'PRATA', Multas: [{}, {}] },
-    { Placa: 'ABC1F34', Fabricante: { Id: 'abc123', Nome: 'Nissan' }, Modelo: { Nome: 'Kicks' }, Cor: 'AZUL', Multas: [] },
-    { Placa: 'XPT0F22', Fabricante: { Id: 'abc123', Nome: 'Jeep' }, Modelo: { Nome: 'Compass' }, Cor: 'PRETO', Multas: [] }
-  ]
 
-  const Item = ({ Fabricante, Modelo, Cor, Placa, Separator }) => (<>
-    <ListItem secondaryAction={<Multa Placa={Placa}></Multa>}>
+  const Item = ({ Fabricante, Modelo, Cor, Placa, Separator, MultasPendentes, MultasQuitadas }) => (<>
+    <ListItem secondaryAction={<Multa Placa={Placa} multasPendentes={MultasPendentes} multasQuitadas={MultasQuitadas}></Multa>}>
       <ListItemAvatar>
-        <Avatar src={`/assets/images/brands/${Fabricante.toLowerCase()}.png`} />
+        <Avatar src={`/assets/images/brands/${Fabricante?.toLowerCase() || 'tesla'}.png`} />
       </ListItemAvatar>
       <ListItemText primary={`${Modelo} - ${Cor}`} secondary={Placa} />
     </ListItem>
@@ -72,14 +80,14 @@ const GridVeiculo = () => {
                   <SubTitle>{veiculos.length}</SubTitle>
                 </Grid>
                 <Grid item>
-                  <Veiculo fabricantes={fabricantes} />
+                  <Veiculo fabricantes={fabricantes} OnAdded={fillVeiculos} />
                 </Grid>
               </Grid>
 
             </Card>
             <List sx={{ px: 3, py: 2, mb: 3, width: '100%', bgcolor: 'background.paper' }}>
               {
-                veiculos.map((v, idx) => (<Item key={v.Placa}
+                veiculos.map((v, idx) => (<Item key={v.Placa} MultasPendentes={v.MultasPendentes} MultasQuitadas={v.MultasQuitadas}
                   Fabricante={v.Fabricante.Nome}
                   Modelo={v.Modelo.Nome}
                   Placa={v.Placa}

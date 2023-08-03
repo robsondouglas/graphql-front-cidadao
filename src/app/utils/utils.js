@@ -136,8 +136,7 @@ export function getTimeDifference(date) {
 }
 
 const config = { 
-  pushKey: 'BCo-Or7a3w1BC8nfoVw9zmHrW00o-l9SobZEY7fhH8q_gKiGtvuFAh9zxTR96y7DKYCbGGwvg7mivHdU5ftaGxk', 
-  url: 'https://014txg6tsk.execute-api.sa-east-1.amazonaws.com/' //'http://localhost:3000/DEV/'
+  url: 'http://localhost:4000/'
 };
 
 export const post = (svc, itm) => {

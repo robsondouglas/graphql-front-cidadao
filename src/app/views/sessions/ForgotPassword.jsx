@@ -1,3 +1,4 @@
+import { LoadingButton } from '@mui/lab';
 import { Box, Button, Card, Grid, styled, TextField } from '@mui/material';
 import useAuth from 'app/hooks/useAuth';
 import { useState } from 'react';
@@ -35,12 +36,10 @@ const ForgotPassword = () => {
 
 
 
-  const handleForgot = async() => {
+  const handleForgot = async () => {
     setLoading(true)
-    try
-    { await forgot(email); }
-    finally
-    { setLoading(false) }
+    try { await forgot(email); }
+    finally { setLoading(false) }
   };
 
   return (
@@ -65,20 +64,27 @@ const ForgotPassword = () => {
                   sx={{ mb: 3, width: '100%' }}
                 />
 
-                <Button fullWidth variant="contained" color="primary" onClick={()=>handleForgot()}>
-                  Reiniciar senha
-                </Button>
-
+                <LoadingButton
+                  type="button"
+                  fullWidth
+                  color="primary"
+                  loading={loading}
+                  onClick={handleForgot}
+                  variant="contained"
+                  sx={{ mb: 2, mt: 3 }}
+                >
+                  Solicitar
+                </LoadingButton>
                 <Button
                   disabled={loading}
                   fullWidth
                   color="primary"
                   variant="outlined"
                   onClick={() => navigate(-1)}
-                  sx={{ mt: 2 }}
-                >
+                  sx={{ mt: 2 }}>
                   Voltar
                 </Button>
+
               </form>
             </ContentBox>
           </Grid>

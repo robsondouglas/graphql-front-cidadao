@@ -24,7 +24,8 @@ const Veiculo = ({ fabricantes, OnAdded }) => {
         modelo: Yup.object().shape({ value: Yup.string(), label: Yup.string() }).required('Selecione o modelo'),
         placa: Yup.string().required('Preencha a placa').matches(/^[A-Z]{3}[0-9][0-9|A-Z][0-9]{2}$/, 'Formato Brasil/Mercossul'),
         cor: Yup.string().required('Preencha a cor'),
-        chassis: Yup.string().required('Preencha o chassis com 12 caracteres').length(12, 'Deve possuir 12 caracteres')
+        ano: Yup.number().required('Preencha o ano').min(2010, 'Somente acima de 2010'),
+        chassis: Yup.string().required('Preencha o chassis com 12 caracteres').length(17, 'Deve possuir 17 caracteres')
     });
 
 
@@ -42,16 +43,18 @@ const Veiculo = ({ fabricantes, OnAdded }) => {
                 IdModelo: itm.modelo.value,
                 Placa: itm.placa,
                 Cor: itm.cor,
-                Chassis: itm.chassis
+                Chassis: itm.chassis,
+                Ano: Number.parseInt(itm.ano)
             });
 
             success('Veículo cadastrado com sucesso');
             handleClose();
+            OnAdded?.()
         }
         catch (ex) {
-            setState({ ...state, loading: false });
-            ex.map(({ message }) => error(message))
+            error(ex)
         }
+        finally { setState({ ...state, loading: false }) }
     }
 
     const handleOpen = () => setState({ ...state, open: true })
@@ -145,7 +148,22 @@ const Veiculo = ({ fabricantes, OnAdded }) => {
 
                                     <Grid item>
                                         <Grid container spacing={3}>
-                                            <Grid item xs={12}>
+                                            <Grid item xs={6}>
+                                                <TextField
+                                                    id="ano"
+                                                    name="ano"
+                                                    fullWidth
+                                                    margin="dense"
+                                                    label="Ano Fabricação"
+                                                    onBlur={handleBlur}
+                                                    onChange={handleChange}
+                                                    value={values.ano}
+                                                    helperText={touched.ano && errors.ano}
+                                                    error={Boolean(errors.ano && touched.ano)}
+                                                />
+                                            </Grid>
+
+                                            <Grid item xs={6}>
                                                 <TextField
                                                     id="chassis"
                                                     name="chassis"

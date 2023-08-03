@@ -1,13 +1,13 @@
 import { getToken } from "auth";
 
-const url = 'http://localhost:3000/';
+const url = 'http://localhost:4000/';
 
 const post = (svc, itm) => new Promise((resolve, reject)=>{
     fetch(`${url}${svc}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          //'Authorization': `Bearer ${getToken()}`
+          'Authorization': `Bearer ${getToken()}`
         },
         method: "POST",
         body: JSON.stringify(itm)
@@ -16,7 +16,7 @@ const post = (svc, itm) => new Promise((resolve, reject)=>{
       res.json()
         .then( ({errors, data})  => {
           if((errors?.length || 0)>0)
-          { reject(errors) }
+          { reject(errors.map(m=>m.message)) }
           else
           { resolve(data)}
           

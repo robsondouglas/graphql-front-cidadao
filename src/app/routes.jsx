@@ -29,7 +29,7 @@ const routes = [
       {
         path: 'main',
         element: <GridVeiculo />,
-        auth: authRoles.admin
+        auth: authRoles.cidadao
       },
       // {
       //   path: 'album',
